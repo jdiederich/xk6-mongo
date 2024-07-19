@@ -82,10 +82,32 @@ func (c *Client) Upsert(database string, collection string, filter interface{}, 
 	return nil
 }
 
-func (c *Client) Find(database string, collection string, filter interface{}, sort interface{}, limit int64) ([]bson.M, error) {
+// func (c *Client) Find(database string, collection string, filter interface{}, sort interface{}, limit int64) ([]bson.M, error) {
+// 	db := c.client.Database(database)
+// 	col := db.Collection(collection)
+// 	opts := options.Find().SetSort(sort).SetLimit(limit)
+// 	cur, err := col.Find(context.Background(), filter, opts)
+// 	if err != nil {
+// 		log.Printf("Error while finding documents: %v", err)
+// 		return nil, err
+// 	}
+// 	var results []bson.M
+// 	if err = cur.All(context.Background(), &results); err != nil {
+// 		log.Printf("Error while decoding documents: %v", err)
+// 		return nil, err
+// 	}
+// 	return results, nil
+// }
+
+func (c *Client) Find(database string, collection string, filter interface{}, sort interface{}, limit int64, skip ...int64) ([]bson.M, error) {
 	db := c.client.Database(database)
 	col := db.Collection(collection)
-	opts := options.Find().SetSort(sort).SetLimit(limit)
+	// Set default skip value to 0 if not provided
+	actualSkip := int64(0)
+	if len(skip) > 0 {
+		actualSkip = skip[0]
+	}
+	opts := options.Find().SetSort(sort).SetLimit(limit).SetSkip(actualSkip)
 	cur, err := col.Find(context.Background(), filter, opts)
 	if err != nil {
 		log.Printf("Error while finding documents: %v", err)
